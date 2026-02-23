@@ -197,8 +197,18 @@ def cli() -> None:
     )
 )
 @common_run_options
+@click.option(
+    "--bias_by_res_jsonl",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to ProteinMPNN per-position bias file (JSONL). For RL/CASCADE gym steering.",
+)
 @click.pass_context
-def infer(ctx: click.Context, common: Dict[str, object]) -> None:
+def infer(
+    ctx: click.Context,
+    common: Dict[str, object],
+    bias_by_res_jsonl: str | None = None,
+) -> None:
     """
     Run raw diffusion inference without evaluation (inference.py).
 
@@ -220,6 +230,8 @@ def infer(ctx: click.Context, common: Dict[str, object]) -> None:
 
     extra_args: List[str] = list(ctx.args)
     argv = build_argv(common, extra_args)
+    if bias_by_res_jsonl:
+        argv.extend(["--bias_by_res_jsonl", str(bias_by_res_jsonl)])
     _inference.main(argv)
 
 

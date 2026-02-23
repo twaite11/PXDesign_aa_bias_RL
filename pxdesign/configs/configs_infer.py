@@ -28,4 +28,5 @@ inference_configs = {
     "num_workers": 16,
     "use_msa": True,
     "use_fast_ln": True,
+    "bias_by_res_jsonl": "",  # optional; path to ProteinMPNN per-position bias (JSONL)
 }

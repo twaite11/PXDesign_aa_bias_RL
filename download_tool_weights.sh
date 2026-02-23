@@ -81,7 +81,17 @@ for subdir in ca_model_weights soluble_model_weights vanilla_model_weights; do
   fi
 done
 
-echo "  ProteinMPNN weights are ready in: ${MPNN_DIR}"
+# Copy run scripts (needed for post-diffusion MPNN sequence design with bias)
+for script in protein_mpnn_run.py protein_mpnn_utils.py; do
+  src="${TMP_DIR}/${script}"
+  dst="${MPNN_DIR}/${script}"
+  if [ -f "${src}" ]; then
+    cp "${src}" "${dst}"
+    echo "  Copied ${script} → ${MPNN_DIR}"
+  fi
+done
+
+echo "  ProteinMPNN weights and run scripts are ready in: ${MPNN_DIR}"
 
 ########################################
 # 3. CCD cache (PXDesign release_data)

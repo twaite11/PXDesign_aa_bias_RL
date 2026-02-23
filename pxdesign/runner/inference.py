@@ -236,6 +236,31 @@ def main(argv=None):
         seed_everything(seed=seed, deterministic=False)
         runner._inference(seed)
 
+        # Post-diffusion MPNN sequence design (always run for real sequences; use bias when provided)
+        bias_path = getattr(configs, "bias_by_res_jsonl", None) or ""
+        if bias_path and not os.path.exists(bias_path):
+            bias_path = ""
+        if DIST_WRAPPER.rank == 0:
+            if DIST_WRAPPER.world_size > 1:
+                torch.distributed.barrier()
+            from pxdesign.utils.mpnn_seqdesign import run_mpnn_on_predictions
+            dump_dir = configs.dump_dir
+            bias_to_use = bias_path if bias_path else None
+            for sample_name in os.listdir(dump_dir):
+                sample_path = os.path.join(dump_dir, sample_name)
+                seed_dir = os.path.join(sample_path, f"seed_{seed}")
+                pred_dir = os.path.join(seed_dir, "predictions")
+                if os.path.isdir(pred_dir):
+                    try:
+                        run_mpnn_on_predictions(
+                            predictions_dir=pred_dir,
+                            sample_name=sample_name,
+                            bias_by_res_jsonl=bias_to_use,
+                            num_seq_per_cif=1,
+                        )
+                    except Exception as e:
+                        logger.warning(f"MPNN sequence design failed for {sample_name}: {e}")
+
 
 if __name__ == "__main__":
     main()
